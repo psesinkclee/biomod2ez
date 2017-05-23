@@ -1,0 +1,239 @@
+---
+title: "Biomod2 Ensemble Model Report"
+output:
+  html_document: null
+  pdf_document: null
+  word_document: default
+header-includes: \usepackage{graphicx}
+---
+
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(magrittr)
+library(stringr)
+library(pander)
+library(biomod2)
+library(rgdal)
+library(raster)
+library(stringr)
+panderOptions("table.split.table" , Inf) # avoid to split the tables
+```
+
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+myBiomodModelOut <- readRDS("myBiomodModelOut.rds")
+variableimportance <- readRDS("variableimportance.rds")
+myBiomodModelEval <- readRDS("myBiomodModelEval.rds")
+ensembleevaluation <- readRDS("ensembleevaluation.rds")
+```
+
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+find_max <-  function(x){
+  max_ind <- sapply(1:nrow(x), function(i) ifelse(length(which.max(x[i,]))==0,NA,which.max(x[i,])))
+  max_val <- matrix(sapply(1:nrow(x),function(i) x[i,max_ind[i]]),ncol=1)
+  out <- cbind(max_ind,max_val)
+  rownames(out) <- rownames(x)
+  colnames(out) <- c("Run","Max")
+  return(out)
+}
+```
+
+-----
+
+![Ensemble](plots/ensemble.png)
+
+BIOMOD2 is a computer platform for ensemble forecasting of species distributions, enabling the treatment of a range of methodological 
+uncertainties in models and the examination of species-environment relationships. BIOMOD includes the ability to model species 
+distributions with several techniques, test models with a wide range of approaches, project species distributions into different 
+environmental conditions (e.g. climate or land use change scenarios) and dispersal functions. It allows assessing species temporal 
+turnover, plot species response curves, and test the strength of species interactions with predictor variables. BIOMOD is implemented 
+in R and is a freeware, open source, package. This ensemble model represents the consensus of different models weighted by their individual
+performance strengths.
+
+
+&nbsp;
+-----
+&nbsp;
+
+
+#Testing Model Performance
+## ROC Results
+
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(myBiomodModelEval["ROC", "Testing.data",,,])
+pander(find_max(myBiomodModelEval["ROC", "Testing.data",,,]))
+```
+
+&nbsp;
+
+### Receiver Operating Characteristic
+The area under the ROC curve (AUC) is commonly used as a standalone measure of model performance. Values range from 0.5 to 1.0 where values low values reflect a model that is no better than a random association between species presence/absence and underlying environmental variables and high values close to 1.0 are reflect a very strong signal of association.
+
+## TSS Results
+
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(myBiomodModelEval["TSS", "Testing.data",,,])
+pander(find_max(myBiomodModelEval["TSS", "Testing.data",,,]))
+```
+
+&nbsp;
+
+### True Skill Statistic (Hanssen-Kruipers discriminant)
+Compares the number of correct forecasts to a hypothetical set of perfect forecasts. This takes into account omission and commission errors. Values range from -1 to +1, where values less than zero indicate that the model performs no better than random. TSS is similar to KAPPA, but it is not affected by prevalence or by the size of the validation set.
+
+## KAPPA Results
+
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(myBiomodModelEval["KAPPA", "Testing.data",,,])
+pander(find_max(myBiomodModelEval["KAPPA", "Testing.data",,,]))
+```
+
+&nbsp;
+
+###Cohen's KAPPA
+This metric uses the accuracy expected by chance to correct overall accuracy of a model. Values range from -1 to +1, where values less than zero indicate that the model performs no better than random. It should be noted that KAPPA is criticized for being dependent on prevalence which introduces bias to estimates of accuracy.
+
+&nbsp;
+-----
+&nbsp;
+
+<!--- INSERTING PLOTS FOR INDIVIDUAL MODELS --->
+-----
+#Individual Model Projections
+##Generalized Linear Model (GLM)
+![GLM](plots/glm.png)
+
+[glm package] Linear regression model that allows for non-linearity and is based on an assumed relationship between the response variable and predictor variables.
+
+-----
+
+##Generalized Boosting Model (GBM)
+![GBM](plots/gbm.png)
+
+[gbm package] A powerful machine learning algorithm that can be used to fit regressions, perform classifications, and determine ranking. It applies boosting methods to regression trees. Simple trees are created where each tree is based on the prediction residuals of the previous tree. Each node is set on a binary decision. Each subsequent tree is used to find a new partition in the dataset that can further reduce error. 
+
+-----
+
+##Generalized Additive Model (GAM)
+![GAM](plots/gam.png)
+
+[gam package] Combines aspects of both additive models and generalized linear models. They function like a GLM in that they can have different error structures and link funtions, but instead of having anexplicit functional form, the relationship uses non-parametric smoothers to decribe the realtionship. They are useful for distributions that have complex shapes.
+
+-----
+
+##Classification Tree Analysis (CTA)
+![CTA](plots/cta.png)
+
+[rpart package] A type of machine learning algorithm used for classifying remotely sensed data in support of land cover mapping and analysis. Classification trees structurally determine binary decisions to estimate the dependent variable.
+
+-----
+
+##Artificial Neural Network (ANN)
+![ANN](plots/ann.png)
+
+[nnet package] A computational model based on the way that biological neural networks function.  This type of model changes while information is fed through it and, in a sense, learns over subsequent iterations how to improve the model.
+
+-----
+
+##Surface Range Envelope (SRE)
+![SRE](plots/sre.png)
+
+[dismo package] Same as BIOCLIM. Determines habitat suitability at each grid cell by comparing values of environmental variables there to a percentile distribution of variables at locations of known presence. The closer that habitats across the study region are to known suitable habitats (at locations of species presence), the more suitable the location is deemed.
+
+-----
+
+##Flexible Discriminant Analysis (FDA)
+![FDA](plots/fda.png)
+
+[fda package] Used to predict a categorical dependent variable (ie. presence or absence) using one or more predictor variable. It is also known as 'pattern recognition', 'supervised learning', and 'supervised classification'. This differs from a cluster analysis which is unsupervised. Objects with known groups are used to then determine the category that ungrouped objects fall in. This is done by identifying relationships among groups' covariance matrices to be able to discriminate between groups. With N number of groups, the model requires N-1 number of predictor variables.
+
+-----
+
+##Multiple Adaptive Regression Splines (MARS)
+![MARS](plots/mars.png)
+
+[earth package] Non-parametric regression techinque that automatically models nonlinearities and interactions between variables. Starting with the mean of the response variables, the model finds basis functions that result in the smallest residual error. Each consecutive basis function consists of one term that is already in the model multiplied by a new hinge function (consists of a variable and a knot). The MARS model, when creating new basis functions, must scour over all possible combinations of existing terms and all variables.
+
+-----
+
+##Random Forests (RF)
+![RF](plots/rf.png)
+
+[randomForest package] Non-parametric regression technique. Response is tested against predictor variables, and the model tries to split response variables into 2 groups that have the smallest amount of variation (presence vs. absence) in each part. This continues until it builds a decision tree. Variables can show up in multiple locations in the tree. Pruning trees defines where to stop tree building (after how many levels). Each run randomizes presence/absence points used and environmental predictors used without using all of them at once. This allows the model to determine over many trees, which variables make the model performance drop when removed (highly important variables). With RF, you don't really need to trim predictor set because it will only use the best variables for the final model.
+
+-----
+
+##MAXENT (Phillips)
+![MAXENT.phillips](plots/maxent.phillips.png)
+
+[maxent package] Uses environmental data for known presence localities and for a large set of background points (or pseudoabsences) in a machine learning methodology using the principle of maximum entropy to model species distributions. This process chooses models with uniform/spread out distributions while considering the study region as a density estimation.
+
+-----
+
+##MAXENT (Tsuruoka)
+![MAXENT.tsuruoka](plots/maxent.tsuruoka.png)
+
+[maxent package] Unlike the Phillips version that runs using java, the R package to implement a maximum entropy approach in species distribution modeling with a focus on minimizing memory consumption for large datasets based on an efficient C++ implementation by Tsuruoka.
+
+&nbsp;
+-----
+&nbsp;
+
+## Ensemble Evaluation
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(ensembleevaluation[[1]])
+```
+
+&nbsp;
+-----
+&nbsp;
+
+#Presence/Absence Decision Tree
+![TREE](plots/decision_tree.png)
+
+&nbsp;
+-----
+&nbsp;
+
+## Variable Importance
+###Run 1
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(variableimportance[,,1,1])
+```
+
+###Run 2
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(variableimportance[,,1,1])
+```
+
+###Run 3
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(variableimportance[,,1,1])
+```
+
+###Run 4
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(variableimportance[,,1,1])
+```
+
+###Run 5
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(variableimportance[,,1,1])
+```
+
+###Run 6
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+pander(variableimportance[,,1,1])
+```
+
+<!--- COPY ABOVE CHUNKS HERE IF DOING MORE THAN ONE RUN --->
+
+&nbsp;
+-----
+&nbsp;
+
+## Failed Models
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+str_extract(myBiomodModelOut@models.failed,"RUN.*")
+```
