@@ -13,7 +13,7 @@ myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,          #SETTING UP INP
                                      resp.name = myRespName)
 
 #IF PSEUDOABSENCES ARE NEEDED, COPY FOLLOWING THREE LINES INTO THE 'BIOMOD_FormattingData' STATEMENT ABOVE AND CHANGE PARAMETERS FOR EACH
-#                                    PA.nb.rep = XXXXXXXX,            #NUMBER OF REQUIRED PSEUDOABSENCE SELECTION (IF NEEDED). DEFAULT = 0
+#                                    PA.nb.rep = XXXXXXXX,            #NUMBER OF REQUIRED PSEUDOABSENCE SELECTION (IF NEEDED). DEFAULT = 1
 #                                    PA.nb.absences = XXXXXXXX,       #NUMBER OF PSEUDOABSENCES SELECTED FOR EACH REPETITION (WHEN PA.nb.rep > 0) OF SELECTION
 #                                    PA.strategy = 'XXXXXXXX')        #STRATEGY FOR SELECTING THE PSEUDOABSENCES (MUST BE: 'random', 'sre', 'disk', or 'user.defined')
 
