@@ -123,14 +123,14 @@ sp <- SpatialPoints(xy)                                 #CONVERTING TO SPATIALPO
 xy.extract <- extract(myExpl, sp)                       #EXTRACTING RASTER DATA TO POINTS IN SPATIALPOINTS OBJECT
 xy.extract <- cbind(xy.extract, p.table[pacol])         #ADDING PRESENCE/ABSENCE COLUMN TO EXTRACTED RASTER VALUE OBJECT
 write.csv(xy.extract, file = "xy_value_extract.csv")    #SAVING EXTRACTED VALUES TO CSV IN WD
-xy.extract <- read_csv("xy_value_extract.csv")[,-1]     #IMPORTING CSV BACK IN, FIXING TYPE/CLASS ISSUES
+xy.extract <- read.csv("xy_value_extract.csv")[,-1]     #IMPORTING CSV BACK IN, FIXING TYPE/CLASS ISSUES
 idx_sp <- ncol(xy.extract)                              #FINDING LAST COLUMN WHERE SPECIES PRESENCE/ABSENCE DATA IS LOCATED
 dat <- data.frame(xy.extract[,-idx_sp],
                   Species = as.factor(ifelse(xy.extract[,idx_sp] == 0, "absent","present")))        #MAKING NEW SPECIES COLUMN WITH PRESENCE/ABSENCE DATA
 xy.tree <- rpart(Species ~ .,dat)                                                                   #BUILDING DECISION TREE FOR PRESENCE/ABSENCE AGAINST ALL EXTRACTED VARIABLE VALUES
 dir.create("plots")
 png("plots/decision_tree.png")
-fancyRpartPlot(xy.tree)            #SAVING PLOT OF DECISION TREE FOR REPORT GENERATION
+rpart.plot(xy.tree)            #SAVING PLOT OF DECISION TREE FOR REPORT GENERATION
 dev.off()
 print("Done Building Decision Tree")
 
